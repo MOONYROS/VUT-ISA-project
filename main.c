@@ -61,7 +61,7 @@ struct occAddr {
 struct occAddr *head = NULL;
 
 // Add a new item
-void add(struct in_addr ip, time_t tm) {
+void addElement(struct in_addr ip, time_t tm) {
     struct occAddr *newNode = malloc(sizeof(struct occAddr));
     newNode->ip = ip;
     newNode->tm = tm;
@@ -70,7 +70,7 @@ void add(struct in_addr ip, time_t tm) {
 }
 
 // Find an item by IP
-struct occAddr* find(struct in_addr ip) {
+struct occAddr* findElement(struct in_addr ip) {
     struct occAddr *current = head;
     while (current) {
         if (current->ip.s_addr == ip.s_addr) {
@@ -82,8 +82,8 @@ struct occAddr* find(struct in_addr ip) {
 }
 
 // Update an item's time
-int update(struct in_addr ip, time_t tm) {
-    struct occAddr *node = find(ip);
+int updateElement(struct in_addr ip, time_t tm) {
+    struct occAddr *node = findElement(ip);
     if (node) {
         node->tm = tm;
         return 1;  // Success
@@ -92,7 +92,7 @@ int update(struct in_addr ip, time_t tm) {
 }
 
 // Remove an item by IP
-int removeItem(struct in_addr ip) {
+int removeElement(struct in_addr ip) {
     struct occAddr *current = head;
     struct occAddr *prev = NULL;
     
@@ -113,7 +113,7 @@ int removeItem(struct in_addr ip) {
 }
 
 // clear all items
-void clear() {
+void clearElements() {
     struct occAddr *current = head;
     while (current) {
         struct occAddr *temp = current;
@@ -123,7 +123,7 @@ void clear() {
     head = NULL;
 }
 
-size_t count_items() {
+size_t countElements() {
     size_t count = 0;
     struct occAddr *current = head;
     while (current) {
@@ -237,8 +237,8 @@ void packet_handler(u_char* user_data, const struct pcap_pkthdr* pkthdr, const u
                     if (dhcp_type == DHCP_RELEASE)
                     {
                         printf("Releasing IP: %s\n", inet_ntoa(dhcp_pkt->ciaddr));
-                        removeItem(dhcp_pkt->ciaddr);   
-                        printf("items in list: %ld\n", count_items());     
+                        removeElement(dhcp_pkt->ciaddr);   
+                        printf("items in list: %ld\n", countElements());     
                     }
                     break;
                 case DHCP_OPTION_LEASE_TIME:
@@ -295,11 +295,11 @@ void packet_handler(u_char* user_data, const struct pcap_pkthdr* pkthdr, const u
             dhcp_options += *(dhcp_options + 1) + 2;  // Move to next option
         }
         if(wasAck){
-            if (find(dhcp_pkt->yiaddr) != NULL) {
-                update(dhcp_pkt->yiaddr, expTime);
+            if (findElement(dhcp_pkt->yiaddr) != NULL) {
+                updateElement(dhcp_pkt->yiaddr, expTime);
             }
             else {
-                add(dhcp_pkt->yiaddr, expTime);
+                addElement(dhcp_pkt->yiaddr, expTime);
             }
             struct occAddr *current = head;
             struct occAddr *prev = NULL;
@@ -321,7 +321,7 @@ void packet_handler(u_char* user_data, const struct pcap_pkthdr* pkthdr, const u
                     current = current->next;
                 }
             }
-            printf("items in list: %ld\n", count_items());
+            printf("items in list: %ld\n", countElements());
         }
     
         // printf("-----------\n");
