@@ -323,17 +323,17 @@ void packet_handler(u_char* user_data, const struct pcap_pkthdr* pkthdr, const u
             }
             printf("items in list: %ld\n", countElements());
         }
-    
         // printf("-----------\n");
     }
 }
 
 int main(int argc, char* argv[]) {
-    pcap_if_t* alldevs, * d;
+    pcap_if_t* alldevs, * d, *device;
     char errbuf[PCAP_ERRBUF_SIZE];
+    errbuf[0] = 0;
     pcap_t* handle;
 
-    printf("Tohle je breakpoint");
+    printf("Tohle je breakpoint\n");
 
     if (pcap_findalldevs(&alldevs, errbuf) == -1) {
         fprintf(stderr, "Error finding devices: %s\n", errbuf);
@@ -348,6 +348,12 @@ int main(int argc, char* argv[]) {
 
     // Use the first device (you can modify this to select a specific device)
     d = alldevs;
+    printf("interface: %s\n", d->name);
+
+    // Print each device name
+    for (device = alldevs; device; device = device->next) {
+        printf("Name: %s, %s\n", device->name, device->description);
+    }
 
     handle = pcap_open_live(d->name, BUFSIZ, 1, 1000, errbuf);
     if (handle == NULL) {
