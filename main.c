@@ -49,8 +49,7 @@ struct dhcp_packet {
     char sname[64];         // Optional server host name, null terminated string
     char file[128];         // Boot file name, null terminated string; "generic" name or null in DHCPDISCOVER, fully qualified directory-path name in DHCPOFFER.
     u_int8_t options[312];  // Optional parameters field. See RFC 2132.
-};
-
+}; 
 
 // Occupied IP address structure
 struct occAddr {
