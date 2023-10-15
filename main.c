@@ -247,7 +247,10 @@ void print_dhcp_packet(const struct dhcp_packet* dhcp) {
     printf("\n");
 }
 
-
+/**
+ * @brief Function parses the IP prefix and checks its format.
+ * @return 1 on successful parse and 0 on invalid IP prefix format.
+*/
 int parse_ip_prefix(const char *str, IP_Prefix *prefix) {
     char ip_str[INET_ADDRSTRLEN];
     char *slash = strchr(str, '/');
@@ -267,6 +270,10 @@ int parse_ip_prefix(const char *str, IP_Prefix *prefix) {
     return 1;
 }
 
+/**
+ * @brief Function prints out the information about the IP prefix. How many devices is connected with this prefix and how full the prefix is.
+ * @param ip_prefixes Array of IP prefixes.
+*/
 void print_ip_ranges(const IP_Prefixes *ip_prefixes) {
     char ip_str[INET_ADDRSTRLEN];  // Prostor pro uložení řetězcové reprezentace IP adresy
 
@@ -284,10 +291,21 @@ void print_ip_ranges(const IP_Prefixes *ip_prefixes) {
     }
 }
 
+/**
+ * @brief Support function that converts IP address format to regular uint32 format.
+ * @param ip IP address to convert.
+ * @return IP address in uint32 format.
+*/
 uint32_t ip_to_uint32(const struct in_addr *ip) {
     return ntohl(ip->s_addr);
 }
 
+/**
+ * @brief Function checks whether an IP address is within specified IP prefix.
+ * @param ip IP address to check.
+ * @param prefix Prefix to check.
+ * @return 1 if the IP address is within the specified prefix, 0 if it is not.
+*/
 int is_ip_in_prefix(const struct in_addr *ip, const IP_Prefix *prefix) {
     uint32_t ip_val = ip_to_uint32(ip);
     uint32_t prefix_val = ip_to_uint32(&prefix->ip);
