@@ -68,6 +68,19 @@ struct occAddr {
 
 struct occAddr *head = NULL;
 
+typedef struct {
+    struct in_addr ip;
+    int prefix;
+    int dev_count;
+} IP_Prefix;
+
+typedef struct {
+    IP_Prefix *prefixes;
+    int count;
+} IP_Prefixes;
+
+IP_Prefixes ip_prefixes;
+
 /**
  * @brief Function adds element to the list of elements.
  * @param ip Structure containing the IP address.
@@ -125,7 +138,8 @@ int removeElement(struct in_addr ip) {
         if (current->ip.s_addr == ip.s_addr) {
             if (prev) {
                 prev->next = current->next;
-            } else {
+            }
+            else {
                 head = current->next;
             }
             free(current);
@@ -137,7 +151,9 @@ int removeElement(struct in_addr ip) {
     return 0;  // Not found
 }
 
-// clear all items
+/**
+ * @brief Clears the whole list of IP addresses.
+*/
 void clearElements() {
     struct occAddr *current = head;
     while (current) {
@@ -148,6 +164,10 @@ void clearElements() {
     head = NULL;
 }
 
+/**
+ * @brief Counts the number of elements (IP addresses) in the list.
+ * @return Returns the number of elements in the list.
+*/
 size_t countElements() {
     size_t count = 0;
     struct occAddr *current = head;
@@ -158,6 +178,11 @@ size_t countElements() {
     return count;
 }
 
+/**
+ * @brief Prints out the whole buffer.
+ * @param buffer Buffer to print.
+ * @param size Size of the buffer.
+*/
 void print_buffer(const unsigned char *buffer, size_t size) {
     for (size_t i = 0; i < size; i += 16) {
         // Print hex values
@@ -186,6 +211,10 @@ void print_buffer(const unsigned char *buffer, size_t size) {
     }
 }
 
+/**
+ * @brief Prints out information about DHCP packet.
+ * @param dhcp Packet from which the information will be read.
+*/
 void print_dhcp_packet(const struct dhcp_packet* dhcp) {
     // printf("DHCP Packet:\n");
     // printf("-----------\n");
@@ -218,18 +247,6 @@ void print_dhcp_packet(const struct dhcp_packet* dhcp) {
     printf("\n");
 }
 
-typedef struct {
-    struct in_addr ip;
-    int prefix;
-    int dev_count;
-} IP_Prefix;
-
-typedef struct {
-    IP_Prefix *prefixes;
-    int count;
-} IP_Prefixes;
-
-IP_Prefixes ip_prefixes;
 
 int parse_ip_prefix(const char *str, IP_Prefix *prefix) {
     char ip_str[INET_ADDRSTRLEN];
