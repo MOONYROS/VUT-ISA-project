@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -Wall -g
 LIBS = -lpcap
 TARGET = main
-SOURCE = main.c
+SOURCE = main.c listfunc.c
 
 # Default rule
 all: $(TARGET)
