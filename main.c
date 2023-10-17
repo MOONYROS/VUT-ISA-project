@@ -405,7 +405,6 @@ int main(int argc, char* argv[]) {
 
     ip_prefixes.count = 0;
     ip_prefixes.prefixes = NULL;
-    // TIMHLE SI NEJSEM JISTEJ
     extern char *optarg;
     extern int optind, opterr, optopt;
 
@@ -454,8 +453,6 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Rozhraní '%s' nenalezeno.\n", interface);
             return 1;
         }
-
-        // pcap_freealldevs(alldevs);
     }
 
     if (optind == argc) {
@@ -501,12 +498,21 @@ int main(int argc, char* argv[]) {
     //     printf("Name: %s, %s\n", device->name, device->description);
     // }
 
+    /** OPENING LIVE SESSION */
     handle = pcap_open_live(interface, BUFSIZ, 1, 1000, errbuf);
     if (handle == NULL) {
         fprintf(stderr, "Error opening device %s: %s\n", interface, errbuf);
         pcap_freealldevs(alldevs);
         return 2;
     }
+
+    /** READING DHCP COMMUNICATION FROM FILE */
+    // handle = pcap_open_offline(filename, errbuf);
+    // if (handle == NULL) {
+    //     fprintf(stderr, "Error opening file %s: %s\n", filename, errbuf);
+    //     pcap_freealldevs(alldevs);
+    //     return 2;
+    // }
 
     pcap_loop(handle, 0, packet_handler, NULL);
 
