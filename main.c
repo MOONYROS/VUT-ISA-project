@@ -72,14 +72,18 @@ struct dhcp_packet {
  * @brief Structure of an IP address with its prefix and number of connected devices.
 */
 typedef struct {
-    struct in_addr ip;      /**< IP address */
-    int prefix;             /**< prefix of an IP address */
-    int dev_count;          /**< number of devices connected to an IP address */
+    struct in_addr ip;      /**< IP address. */
+    int prefix;             /**< Prefix of an IP address. */
+    int dev_count;          /**< Number of devices connected to an IP address. */
 } IP_Prefix;
 
+/**
+ * @struct IP_prefixes
+ * @brief Structure with an array of IP prefixes and their amount.
+*/
 typedef struct {
-    IP_Prefix *prefixes;
-    int count;
+    IP_Prefix *prefixes;    /**< Array of prefixes. */
+    int count;              /**< Count of IP prefixes. */
 } IP_Prefixes;
 
 struct occAddr *head = NULL;
