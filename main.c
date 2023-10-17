@@ -44,22 +44,26 @@
 #define BOOTREQUEST 1
 #define BOOTREPLY 2
 
+/**
+ * @struct dhcp_packet
+ * @brief Struture of a DHCP packet.
+*/
 struct dhcp_packet {
-    u_int8_t op;            // Message type: Boot Request (1) or Boot Reply (2)
-    u_int8_t htype;         // Hardware address type: Ethernet is 1
-    u_int8_t hlen;          // Hardware address length: Ethernet is 6
-    u_int8_t hops;          // Hops
-    u_int32_t xid;          // Transaction ID
-    u_int16_t secs;         // Seconds since DHCP process started
-    u_int16_t flags;        // Flags
-    struct in_addr ciaddr;  // Client IP address if client has a current IP address
-    struct in_addr yiaddr;  // 'Your' (client) IP address
-    struct in_addr siaddr;  // IP address of next server to use in bootstrap
-    struct in_addr giaddr;  // Gateway IP address, if present
-    u_int8_t chaddr[16];    // Client hardware address
-    char sname[64];         // Optional server host name, null terminated string
-    char file[128];         // Boot file name, null terminated string; "generic" name or null in DHCPDISCOVER, fully qualified directory-path name in DHCPOFFER.
-    u_int8_t options[312];  // Optional parameters field. See RFC 2132.
+    u_int8_t op;            /**< Message type: Boot Request (1) or Boot Reply (2) */
+    u_int8_t htype;         /**< Hardware address type: Ethernet is 1 */
+    u_int8_t hlen;          /**< Hardware address length: Ethernet is 6 */
+    u_int8_t hops;          /**< Hops */
+    u_int32_t xid;          /**< Transaction ID */
+    u_int16_t secs;         /**< Seconds since DHCP process started */
+    u_int16_t flags;        /**< Flags */
+    struct in_addr ciaddr;  /**< Client IP address if client has a current IP address */
+    struct in_addr yiaddr;  /**< 'Your' (client) IP address */
+    struct in_addr siaddr;  /**< IP address of next server to use in bootstrap */
+    struct in_addr giaddr;  /**< Gateway IP address, if present */
+    u_int8_t chaddr[16];    /**< Client hardware address */
+    char sname[64];         /**< Optional server host name, null terminated string */
+    char file[128];         /**< Boot file name, null terminated string; "generic" name or null in DHCPDISCOVER, fully qualified directory-path name in DHCPOFFER. */
+    u_int8_t options[312];  /**< Optional parameters field. See RFC 2132. */
 }; 
 
 struct occAddr *head = NULL;
@@ -76,8 +80,6 @@ typedef struct {
 } IP_Prefixes;
 
 IP_Prefixes ip_prefixes;
-
-
 
 /**
  * @brief Prints out the whole buffer.
