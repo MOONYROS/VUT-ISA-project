@@ -44,9 +44,10 @@
 #define BOOTREQUEST 1
 #define BOOTREPLY 2
 
+
 /**
  * @struct dhcp_packet
- * @brief Struture of a DHCP packet.
+ * @brief Structure of a DHCP packet.
 */
 struct dhcp_packet {
     u_int8_t op;            /**< Message type: Boot Request (1) or Boot Reply (2) */
@@ -66,18 +67,22 @@ struct dhcp_packet {
     u_int8_t options[312];  /**< Optional parameters field. See RFC 2132. */
 }; 
 
-struct occAddr *head = NULL;
-
+/**
+ * @struct IP_Prefix
+ * @brief Structure of an IP address with its prefix and number of connected devices.
+*/
 typedef struct {
-    struct in_addr ip;
-    int prefix;
-    int dev_count;
+    struct in_addr ip;      /**< IP address */
+    int prefix;             /**< prefix of an IP address */
+    int dev_count;          /**< number of devices connected to an IP address */
 } IP_Prefix;
 
 typedef struct {
     IP_Prefix *prefixes;
     int count;
 } IP_Prefixes;
+
+struct occAddr *head = NULL;
 
 IP_Prefixes ip_prefixes;
 
