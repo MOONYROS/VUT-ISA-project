@@ -44,7 +44,6 @@
 #define BOOTREQUEST 1
 #define BOOTREPLY 2
 
-
 /**
  * @struct dhcp_packet
  * @brief Structure of a DHCP packet.
@@ -264,11 +263,14 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
         print_ip_ranges(&ip_prefixes);  
         // print_dhcp_packet(dhcp_pkt);
 
-        time_t expTime;
-        time_t currTime;
-        time(&currTime);
-        expTime = currTime;
+        // time_t expTime;
+        // time_t currTime;
+        // time(&currTime);
+        // expTime = currTime;
+        long int lease_time = 24*60*60; // TODO MAGIC CONSTANT
         int wasAck = 0;
+
+        // printf("TIME: %ld CURRTIME: %ld, LEN: %d %d                           \n\n", pkthdr->ts.tv_sec, currTime, pkthdr->caplen, pkthdr->len);
 
         // Extract DHCP message type from DHCP options
         u_char* dhcp_options = (u_char*)(packet + 14 + (ip_header->ip_hl << 2) + sizeof(struct udphdr) + 240);
@@ -293,6 +295,7 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
                     u_char dhcp_type = *(dhcp_options + 2);  // Message type is two bytes offset from the start of the option
                     if (dhcp_type == DHCP_ACK) {
                         wasAck = 1;
+                        // printf("ACK PRISLO\n");
                     }
                     if (dhcp_type == DHCP_RELEASE)
                     {
@@ -305,9 +308,10 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
                     }
                     break;
                 case DHCP_OPTION_LEASE_TIME:
-                    uint32_t lease_time = ntohl(*(uint32_t*)(dhcp_options + 2));
-                    expTime += lease_time;
+                    // uint32_t lease_time = ntohl(*(uint32_t*)(dhcp_options + 2));
+                    // expTime += lease_time;
                     // printf("Lease Time: %u seconds\n", lease_time);
+                    lease_time = ntohl(*(uint32_t*)(dhcp_options + 2));
                     break;
                 case DHCP_OPTION_SERVER_ID:
                     // printf("Server identifier IP: %s\n", inet_ntoa(*(struct in_addr*)(dhcp_options + 2)));
@@ -359,29 +363,29 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
         }
         if(wasAck){
             if (findElement(dhcp_pkt->yiaddr) != NULL) {
-                updateElement(dhcp_pkt->yiaddr, expTime);
+                updateElement(dhcp_pkt->yiaddr, pkthdr->ts.tv_sec + lease_time);
             }
             else {
-                addElement(dhcp_pkt->yiaddr, expTime);
+                addElement(dhcp_pkt->yiaddr, pkthdr->ts.tv_sec + lease_time);
             }
-            struct occAddr *current = head;
+            struct occAddr *tmpOccAddr = head;
             struct occAddr *prev = NULL;
-            while (current) {
-                if (current->tm < currTime) {
+            while (tmpOccAddr) {
+                if (tmpOccAddr->tm < pkthdr->ts.tv_sec) {
                     if (prev) {
-                        prev->next = current->next;
-                        free(current);
-                        current = prev->next;
+                        prev->next = tmpOccAddr->next;
+                        free(tmpOccAddr);
+                        tmpOccAddr = prev->next;
                     }
                     else {
-                        head = current->next;
-                        free(current);
-                        current = head;
+                        head = tmpOccAddr->next;
+                        free(tmpOccAddr);
+                        tmpOccAddr = head;
                     }
                 }
                 else {
-                    prev = current;
-                    current = current->next;
+                    prev = tmpOccAddr;
+                    tmpOccAddr = tmpOccAddr->next;
                 }
             }
             print_ip_ranges(&ip_prefixes);    
