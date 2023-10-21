@@ -90,6 +90,7 @@ typedef struct {
 struct occAddr *head = NULL;
 
 IP_Prefixes ip_prefixes;
+int delay_micros = 0;
 
 /**
  * @brief Function parses the IP prefix and checks its format.
@@ -192,10 +193,14 @@ void update_dev_count(struct occAddr *head, IP_Prefixes *ip_prefixes) {
         if (dev_count > 8) { //max_devs / 2
             char msg[255];
             sprintf(msg, "prefix %s/%d exceeded 50%% of allocations", ip_str, ip_prefixes->prefixes[i].prefix);
-            move(ip_prefixes->count, 0);
+            move(ip_prefixes->count+i, 0);
             printw("%s\n", msg);
             refresh();
             syslog(LOG_WARNING, "%s", msg);
+        } else {
+            move(ip_prefixes->count+i, 0);
+            printw("%78s", " ");
+            
         }
     }
 }
@@ -251,7 +256,6 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
                         // printf("Releasing IP: %s\n", inet_ntoa(dhcp_pkt->ciaddr));
                         removeElement(dhcp_pkt->ciaddr);   
                         // printf("items in list: %ld\n", countElements()); 
-                        // print_ip_ranges(&ip_prefixes);    
                         update_dev_count(head, &ip_prefixes);
                         print_ip_ranges(&ip_prefixes);    
                     }
@@ -337,19 +341,17 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
                     tmpOccAddr = tmpOccAddr->next;
                 }
             }
-            // print_ip_ranges(&ip_prefixes);    
             update_dev_count(head, &ip_prefixes);
             print_ip_ranges(&ip_prefixes);   
 
         
-            // Storing start time
-            clock_t start_time = clock();
-        
-            // looping till required time is not achieved
-            while (clock() < start_time + 10000);
-            // printf("items in list: %ld\n", countElements());
+            // Animation loop for pcap file processing
+            if(delay_micros>0) {
+                clock_t start_time = clock();
+                // looping till required time is not achieved
+                while (clock() < start_time + delay_micros);
+            }
         }
-        // printf("-----------\n");
     }
 }
 
@@ -452,6 +454,7 @@ int main(int argc, char* argv[]) {
             return 2;
         }
 
+        delay_micros = 00000;
         pcap_loop(handle, 0, packet_handler, NULL);
 
         pcap_close(handle);
@@ -468,6 +471,7 @@ int main(int argc, char* argv[]) {
             return 2;
         }
 
+        delay_micros = 0;
         pcap_loop(handle, 0, packet_handler, NULL);
 
         pcap_close(handle);
@@ -475,6 +479,19 @@ int main(int argc, char* argv[]) {
     }
 
     endwin();
+
+    // char ip_str[INET_ADDRSTRLEN];  // Prostor pro uložení řetězcové reprezentace IP adresy
+    // for (int i = 0; i < ip_prefixes.count; i++) {
+    //     if (inet_ntop(AF_INET, &ip_prefixes.prefixes[i].ip, ip_str, INET_ADDRSTRLEN)) {
+    //         int max_devs = (1 << (32 - ip_prefixes.prefixes[i].prefix)) - 2;
+    //         int dev_count = ip_prefixes.prefixes[i].dev_count;
+    //         printf("IP rozsah: %s/%d %d %d %.2f%%\n", ip_str, ip_prefixes.prefixes[i].prefix, max_devs, dev_count, (double) dev_count*100/max_devs);
+    //     } else {
+    //         fprintf(stderr, "Chyba při konverzi IP adresy pro index %d.\n", i);
+    //         exit(1);
+    //     }
+    // }
+
     free(ip_prefixes.prefixes);
 
     return 0;
