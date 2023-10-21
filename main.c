@@ -16,6 +16,7 @@
 #include <netinet/if_ether.h>
 #include <time.h>
 #include <syslog.h>
+#include <ncurses.h>
 
 #include "common.h"
 #include "listfunc.h"
@@ -91,75 +92,6 @@ struct occAddr *head = NULL;
 IP_Prefixes ip_prefixes;
 
 /**
- * @brief Prints out the whole buffer.
- * @param buffer Buffer to print.
- * @param size Size of the buffer.
-*/
-void print_buffer(const unsigned char *buffer, size_t size) {
-    for (size_t i = 0; i < size; i += 16) {
-        // Print hex values
-        for (size_t j = 0; j < 16 && (i + j) < size; ++j) {
-            printf("%02x ", buffer[i + j]);
-        }
-
-        // Add padding if necessary
-        for (size_t j = (i + 16 > size ? size - i : 16); j < 16; ++j) {
-            printf("   ");
-        }
-
-        printf("| ");
-
-        // Print ASCII characters
-        for (size_t j = 0; j < 16 && (i + j) < size; ++j) {
-            unsigned char ch = buffer[i + j];
-            if (ch >= 0x20 && ch <= 0x7E) {  // printable ASCII range
-                printf("%c", ch);
-            } else {
-                printf(".");
-            }
-        }
-        
-        printf("\n");
-    }
-}
-
-/**
- * @brief Prints out information about DHCP packet.
- * @param dhcp Packet from which the information will be read.
-*/
-void print_dhcp_packet(const struct dhcp_packet* dhcp) {
-    // printf("DHCP Packet:\n");
-    // printf("-----------\n");
-
-    printf("Message Type: %s\n", dhcp->op == BOOTREQUEST ? "Boot Request" : "Boot Reply");
-    printf("Hardware Address Type: %u\n", dhcp->htype);
-    printf("Hardware Address Length: %u\n", dhcp->hlen);
-    printf("Hops: %u\n", dhcp->hops);
-    printf("Transaction ID: 0x%X\n", ntohl(dhcp->xid));
-    printf("Seconds Elapsed: %u\n", ntohs(dhcp->secs));
-    printf("Flags: 0x%X\n", ntohs(dhcp->flags));
-    printf("Client IP: %s\n", inet_ntoa(dhcp->ciaddr));
-    printf("Your IP: %s\n", inet_ntoa(dhcp->yiaddr));
-    printf("Server IP: %s\n", inet_ntoa(dhcp->siaddr));
-    printf("Relay IP: %s\n", inet_ntoa(dhcp->giaddr));
-
-    printf("Client MAC Address: ");
-    for(int i = 0; i < dhcp->hlen && i < 16; i++) {
-        printf("%02X", dhcp->chaddr[i]);
-        if (i < (dhcp->hlen - 1)) printf(":");
-    }
-    printf("\n");
-
-    printf("Server Name: %s\n", dhcp->sname);
-    printf("Boot File Name: %s\n", dhcp->file);
-
-    // Further processing can be done to extract specific DHCP options
-    // You can add code here to parse the options if needed.
-
-    printf("\n");
-}
-
-/**
  * @brief Function parses the IP prefix and checks its format.
  * @return 1 on successful parse and 0 on invalid IP prefix format.
 */
@@ -193,14 +125,14 @@ void print_ip_ranges(const IP_Prefixes *ip_prefixes) {
         if (inet_ntop(AF_INET, &ip_prefixes->prefixes[i].ip, ip_str, INET_ADDRSTRLEN)) {
             int max_devs = (1 << (32 - ip_prefixes->prefixes[i].prefix)) - 2;
             int dev_count = ip_prefixes->prefixes[i].dev_count;
-            printf("IP rozsah: %s/%d %d %d %.2f%%        \n", ip_str, ip_prefixes->prefixes[i].prefix, max_devs, dev_count, (double) dev_count*100/max_devs);
+            move(i, 0);
+            printw("IP rozsah: %s/%d %d %d %.2f%%                        ", ip_str, ip_prefixes->prefixes[i].prefix, max_devs, dev_count, (double) dev_count*100/max_devs);
         } else {
-            printf("Chyba při konverzi IP adresy pro index %d.\n", i);
+            fprintf(stderr, "Chyba při konverzi IP adresy pro index %d.\n", i);
+            exit(1);
         }
     }
-    for (int i = 0; i < ip_prefixes->count; i++) {
-        printf("\033[A");
-    }
+    refresh();
 }
 
 /**
@@ -260,7 +192,9 @@ void update_dev_count(struct occAddr *head, IP_Prefixes *ip_prefixes) {
         if (dev_count > 8) { //max_devs / 2
             char msg[255];
             sprintf(msg, "prefix %s/%d exceeded 50%% of allocations", ip_str, ip_prefixes->prefixes[i].prefix);
-            printf("%s\n", msg);
+            move(ip_prefixes->count, 0);
+            printw("%s\n", msg);
+            refresh();
             syslog(LOG_WARNING, "%s", msg);
         }
     }
@@ -317,7 +251,7 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
                         // printf("Releasing IP: %s\n", inet_ntoa(dhcp_pkt->ciaddr));
                         removeElement(dhcp_pkt->ciaddr);   
                         // printf("items in list: %ld\n", countElements()); 
-                        print_ip_ranges(&ip_prefixes);    
+                        // print_ip_ranges(&ip_prefixes);    
                         update_dev_count(head, &ip_prefixes);
                         print_ip_ranges(&ip_prefixes);    
                     }
@@ -403,7 +337,7 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
                     tmpOccAddr = tmpOccAddr->next;
                 }
             }
-            print_ip_ranges(&ip_prefixes);    
+            // print_ip_ranges(&ip_prefixes);    
             update_dev_count(head, &ip_prefixes);
             print_ip_ranges(&ip_prefixes);   
 
@@ -412,7 +346,7 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
             clock_t start_time = clock();
         
             // looping till required time is not achieved
-            while (clock() < start_time + 100);
+            while (clock() < start_time + 10000);
             // printf("items in list: %ld\n", countElements());
         }
         // printf("-----------\n");
@@ -502,9 +436,10 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    initscr();
+
     // printf("Filename: %s\n", filename ? filename : "Není zadán");
     // printf("Interface: %s\n", interface ? interface : "Není zadán");
-    print_ip_ranges(&ip_prefixes);
     print_ip_ranges(&ip_prefixes);
 
     if (filename)
@@ -539,6 +474,7 @@ int main(int argc, char* argv[]) {
         pcap_freealldevs(alldevs);
     }
 
+    endwin();
     free(ip_prefixes.prefixes);
 
     return 0;

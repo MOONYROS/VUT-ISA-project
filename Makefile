@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -g
-LIBS = -lpcap
+LIBS = -lpcap -lncurses
 TARGET = main
 SOURCE = main.c listfunc.c
 
