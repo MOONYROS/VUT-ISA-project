@@ -15,6 +15,7 @@
 #include <netinet/udp.h>
 #include <netinet/if_ether.h>
 #include <time.h>
+#include <syslog.h>
 
 #include "common.h"
 #include "listfunc.h"
@@ -249,6 +250,20 @@ void update_dev_count(struct occAddr *head, IP_Prefixes *ip_prefixes) {
         }
         current = current->next;
     }
+
+    for (int i = 0; i < ip_prefixes->count; i++) {
+        int max_devs = (1 << (32 - ip_prefixes->prefixes[i].prefix)) - 2;
+        int dev_count = ip_prefixes->prefixes[i].dev_count;
+        char ip_str[INET_ADDRSTRLEN];  // Prostor pro uložení řetězcové reprezentace IP adresy
+        inet_ntop(AF_INET, &ip_prefixes->prefixes[i].ip, ip_str, INET_ADDRSTRLEN);
+
+        if (dev_count > 8) { //max_devs / 2
+            char msg[255];
+            sprintf(msg, "prefix %s/%d exceeded 50%% of allocations", ip_str, ip_prefixes->prefixes[i].prefix);
+            printf("%s\n", msg);
+            syslog(LOG_WARNING, "%s", msg);
+        }
+    }
 }
 
 void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, const unsigned char* packet) {
@@ -390,7 +405,14 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
             }
             print_ip_ranges(&ip_prefixes);    
             update_dev_count(head, &ip_prefixes);
-            print_ip_ranges(&ip_prefixes);    
+            print_ip_ranges(&ip_prefixes);   
+
+        
+            // Storing start time
+            clock_t start_time = clock();
+        
+            // looping till required time is not achieved
+            while (clock() < start_time + 100);
             // printf("items in list: %ld\n", countElements());
         }
         // printf("-----------\n");
@@ -480,48 +502,43 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    printf("Filename: %s\n", filename ? filename : "Není zadán");
-    printf("Interface: %s\n", interface ? interface : "Není zadán");
-    
-    // for (int i = 0; i < ip_prefixes.count; i++) {
-    //     char ip_str[INET_ADDRSTRLEN];  // Prostor pro uložení řetězcové reprezentace IP adresy
-    //     printf("IP prefix: %s\n", inet_ntop(AF_INET, ip_prefixes->prefixes[i].ip, ip_str, INET_ADDRSTRLEN));
-    // }
-
+    // printf("Filename: %s\n", filename ? filename : "Není zadán");
+    // printf("Interface: %s\n", interface ? interface : "Není zadán");
     print_ip_ranges(&ip_prefixes);
     print_ip_ranges(&ip_prefixes);
- 
-    // printf("Tohle je breakpoint\n");
 
-    // // Use the first device (you can modify this to select a specific device)
-    // d = alldevs;
-    // printf("interface: %s\n", d->name);
+    if (filename)
+    {
+        /** READING DHCP COMMUNICATION FROM FILE */
+        handle = pcap_open_offline(filename, errbuf);
+        if (handle == NULL) {
+            fprintf(stderr, "Error opening file %s: %s\n", filename, errbuf);
+            pcap_freealldevs(alldevs);
+            return 2;
+        }
 
-    // // Print each device name
-    // for (device = alldevs; device; device = device->next) {
-    //     printf("Name: %s, %s\n", device->name, device->description);
-    // }
+        pcap_loop(handle, 0, packet_handler, NULL);
 
-    /** OPENING LIVE SESSION */
-    handle = pcap_open_live(interface, BUFSIZ, 1, 1000, errbuf);
-    if (handle == NULL) {
-        fprintf(stderr, "Error opening device %s: %s\n", interface, errbuf);
+        pcap_close(handle);
         pcap_freealldevs(alldevs);
-        return 2;
     }
 
-    /** READING DHCP COMMUNICATION FROM FILE */
-    // handle = pcap_open_offline(filename, errbuf);
-    // if (handle == NULL) {
-    //     fprintf(stderr, "Error opening file %s: %s\n", filename, errbuf);
-    //     pcap_freealldevs(alldevs);
-    //     return 2;
-    // }
+    if (interface)
+    {
+        /** OPENING LIVE SESSION */
+        handle = pcap_open_live(interface, BUFSIZ, 1, 1000, errbuf);
+        if (handle == NULL) {
+            fprintf(stderr, "Error opening device %s: %s\n", interface, errbuf);
+            pcap_freealldevs(alldevs);
+            return 2;
+        }
 
-    pcap_loop(handle, 0, packet_handler, NULL);
+        pcap_loop(handle, 0, packet_handler, NULL);
 
-    pcap_close(handle);
-    pcap_freealldevs(alldevs);
+        pcap_close(handle);
+        pcap_freealldevs(alldevs);
+    }
+
     free(ip_prefixes.prefixes);
 
     return 0;
