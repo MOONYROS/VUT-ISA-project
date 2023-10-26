@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -g
 LIBS = -lpcap -lncurses
-TARGET = main
+TARGET = dhcp-stats
 SOURCE = main.c listfunc.c
 
 # Default rule

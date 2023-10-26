@@ -1,8 +1,8 @@
 INTERFACE
-sudo ./main -i ens33 192.168.1.1/24
+sudo ./dhcp-stats -i ens33 192.168.1.1/24
 
 FILE + INTERFACE
-sudo ./main -i ens33 -r test_files/artax_2_dhcp.pcap 10.1.101.1/24 10.1.6.1/24 192.168.1.1/24
+sudo ./dhcp-stats -i ens33 -r test_files/artax_2_dhcp.pcap 10.1.101.1/24 10.1.6.1/24 192.168.1.1/24
 
 FILE
-sudo ./main -r test_files/artax_2_dhcp.pcap 10.1.101.1/24 10.1.6.1/24 192.168.1.1/24
+sudo ./dhcp-stats -r test_files/artax_2_dhcp.pcap 10.1.101.1/24 10.1.6.1/24 192.168.1.1/24
