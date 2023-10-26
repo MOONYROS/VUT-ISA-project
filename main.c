@@ -190,7 +190,7 @@ void update_dev_count(struct occAddr *head, IP_Prefixes *ip_prefixes) {
         char ip_str[INET_ADDRSTRLEN];  // Prostor pro uložení řetězcové reprezentace IP adresy
         inet_ntop(AF_INET, &ip_prefixes->prefixes[i].ip, ip_str, INET_ADDRSTRLEN);
 
-        if (dev_count > 8) { //max_devs / 2
+        if (dev_count > max_devs / 2) { // FOR TESTING SYSLOG -> 8
             char msg[255];
             sprintf(msg, "prefix %s/%d exceeded 50%% of allocations", ip_str, ip_prefixes->prefixes[i].prefix);
             move(ip_prefixes->count+i, 0);
