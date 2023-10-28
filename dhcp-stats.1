@@ -22,29 +22,37 @@ All of the saturation alerts are also written to syslog.
 .BR \-r " " \fIfilename\fR
 Specifies the name of the pcap file from which data will be read and statistics generated and output to the terminal using the ncurses library.
 If omitted, then at least the \fB-i\fR option must be used for \fBdhcp-stats\fR to run.
+In combination with \fB-i\fR, program will process the given pcap file first and it will then listen to DHCP communication using chosen interface (in the \fB-i\fR option) in realtime.
 .TP
 .BR \-i " " \fIinterface-name\fR
 Specifies the name of the network interface (for example, ens33) to be monitored.
 If omitted, then at least the \fB-r\fR option must be used for \fBdhcp-stats\fR to run.
+In combination with \fB-r\fR, program will process the given pcap file first and it will then listen to DHCP communication using chosen interface (in the \fB-i\fR option) in realtime.
 .TP
 \fIip-prefix\fR
 Mandatory argument specifying the IP address with its prefix to be monitored.
 The format of the address must be written as \fB<IP address>/<IP prefix>\fR (for example 192.168.1.1/24, where 192.168.1.1 is the IP address and 24 is the prefix).
 One or more IP addresses with their prefixes can be specified.
 These IP addresses must be separated by spaces.
-.SH PŘÍKLADY
+.SH EXAMPLES
 .PP
-Spustit \fBdhcp-stats\fR pro monitorování defaultního síťového rozhraní a záznam dat do souboru \fIoutput.log\fR:
+Run dhcp-stats to realtime monitor the ens33 network interface (\fB-i\fR used):
 .nf
 \fB
-./dhcp-stats -r output.log 192.168.1.0
+sudo ./dhcp-stats -i ens33 192.168.1.1/24
+\fR
+.PP
+Run dhcp-stats to generate statistics from the myComm.pcap file using the addresses 10.1.101.1/24, 10.1.6.1/24 and 192.168.1.1/24 (\fB-r\fR used):
+.nf
+\fB
+sudo ./dhcp-stats -r myComm.pcap 10.1.101.1/24 10.1.6.1/24 192.168.1.1/24
 \fR
 .fi
 .PP
-Spustit \fBdhcp-stats\fR na specifickém síťovém rozhraní \fBeth0\fR a monitorování více IP prefixů:
+Running dhcp-stats using the myComm.pcap file and subsequent realtime monitoring of communication with the ens33 network interface at addresses 10.1.101.1/24, 10.1.6.1/24 and 192.168.1.1/24 (\fB-i\fR and \fB-r\fR used):
 .nf
 \fB
-./dhcp-stats -i eth0 192.168.1.0 192.168.2.0
+sudo ./dhcp-stats -i ens33 -r myComm.pcap 10.1.101.1/24 10.1.6.1/24 192.168.1.1/24
 \fR
 .fi
 .SH CHYBY
