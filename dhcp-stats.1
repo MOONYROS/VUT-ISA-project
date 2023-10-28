@@ -17,13 +17,18 @@ All of the saturation alerts are also written to syslog.
 .SH OPTIONS
 .TP
 .BR \-r " " \fIfilename\fR
-Určuje jméno souboru pro záznam logů. Pokud není tato možnost použita, výstup bude standardně zobrazen na konzoli/terminálu.
+Specifies the name of the pcap file from which data will be read and statistics generated and output to the terminal using the ncurses library.
+If omitted, then at least the \fB-i\fR option must be used for \fBdhcp-stats\fR to run.
 .TP
 .BR \-i " " \fIinterface-name\fR
-Specifikuje název síťového rozhraní, které má být monitorováno. Je-li vynecháno, \fBdhcp-stats\fR automaticky vyhledá a použije primární aktivní síťové rozhraní dostupné v systému.
+Specifies the name of the network interface (for example, ens33) to be monitored.
+If omitted, then at least the \fB-r\fR option must be used for \fBdhcp-stats\fR to run.
 .TP
 \fIip-prefix\fR
-Povinný argument specifikující IP prefix(y), které mají být sledovány. Může to být jedna nebo více IP adres nebo rozsahů, oddělených mezerami.
+Mandatory argument specifying the IP address with its prefix to be monitored.
+The format of the address must be written as \fB<IP address>/<IP prefix>\fR (for example 192.168.1.1/24, where 192.168.1.1 is the IP address and 24 is the prefix).
+One or more IP addresses with their prefixes can be specified.
+These IP addresses must be separated by spaces.
 .SH PŘÍKLADY
 .PP
 Spustit \fBdhcp-stats\fR pro monitorování defaultního síťového rozhraní a záznam dat do souboru \fIoutput.log\fR:
