@@ -1,0 +1,47 @@
+.TH DHCP-STATS 1 "October 28 2023" "verze 1.0" "User Manual"
+.SH NAME
+dhcp-stats \- A tool for monitoring and collecting statistics about DHCP traffic.
+.SH SYNOPSIS
+.B dhcp-stats
+[ \-r
+.I filename
+] [ \-i
+.I interface-name
+] \fIip-prefix\fR [ \fIip-prefix\fR ... ]
+.SH DESCRIPTION
+\fBdhcp-stats\fR is a tool for monitoring and running Dynamic Host Configuration Protocol (DHCP).
+It allows the user to get clear information regarding network IP addresses by entering network prefixes.
+Statistics can be made from a file or from actual network traffic.
+The tool alerts the user whenever a device connects that causes prefix saturation to be greater than 50% (even when the saturation goes from eg. 55% to 63%).
+All of the saturation alerts are also written to syslog.
+.SH OPTIONS
+.TP
+.BR \-r " " \fIfilename\fR
+Určuje jméno souboru pro záznam logů. Pokud není tato možnost použita, výstup bude standardně zobrazen na konzoli/terminálu.
+.TP
+.BR \-i " " \fIinterface-name\fR
+Specifikuje název síťového rozhraní, které má být monitorováno. Je-li vynecháno, \fBdhcp-stats\fR automaticky vyhledá a použije primární aktivní síťové rozhraní dostupné v systému.
+.TP
+\fIip-prefix\fR
+Povinný argument specifikující IP prefix(y), které mají být sledovány. Může to být jedna nebo více IP adres nebo rozsahů, oddělených mezerami.
+.SH PŘÍKLADY
+.PP
+Spustit \fBdhcp-stats\fR pro monitorování defaultního síťového rozhraní a záznam dat do souboru \fIoutput.log\fR:
+.nf
+\fB
+./dhcp-stats -r output.log 192.168.1.0
+\fR
+.fi
+.PP
+Spustit \fBdhcp-stats\fR na specifickém síťovém rozhraní \fBeth0\fR a monitorování více IP prefixů:
+.nf
+\fB
+./dhcp-stats -i eth0 192.168.1.0 192.168.2.0
+\fR
+.fi
+.SH CHYBY
+Jakékoliv známé chyby a problémy by měly být hlášeny na odpovídajícím fóru nebo trackeru chyb projektu.
+.SH AUTOR
+Tato stránka manuálu byla vytvořena [vaše jméno], pro [název vaší organizace nebo odkaz na projekt].
+.SH VIDEJTE TAKÉ
+\fBdhcp\fR(5), \fBsyslog\fR(3), \fBnetworkmanager\fR(8)
