@@ -1,4 +1,4 @@
-.TH DHCP-STATS 1 "October 28 2023" "verze 1.0" "User Manual"
+.TH DHCP-STATS 1 "October 28 2023" "version 1.0" "User Manual"
 .SH NAME
 dhcp-stats \- A tool for monitoring and collecting statistics about DHCP traffic.
 .SH SYNOPSIS
@@ -11,7 +11,10 @@ dhcp-stats \- A tool for monitoring and collecting statistics about DHCP traffic
 .SH DESCRIPTION
 \fBdhcp-stats\fR is a tool for monitoring and running Dynamic Host Configuration Protocol (DHCP).
 It allows the user to get clear information regarding network IP addresses by entering network prefixes.
+.PP
+The output displays for each specified IP address the maximum number of devices that can connect, the current number of connected devices, and the network occupancy percentage (calculated using the maximum number of devices and the current occupancy).
 Statistics can be made from a file or from actual network traffic.
+.PP
 The tool alerts the user whenever a device connects that causes prefix saturation to be greater than 50% (even when the saturation goes from eg. 55% to 63%).
 All of the saturation alerts are also written to syslog.
 .SH OPTIONS
