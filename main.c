@@ -86,16 +86,18 @@ int delay_micros = DEFAULT_DELAY;
 int parse_ip_prefix(const char *str, IP_Prefix *prefix) {
     char ip_str[INET_ADDRSTRLEN];
     char *slash = strchr(str, '/');
-    if (!slash) return 0;  // Rozsah nema validni format
+    if (!slash) return 0;  // invalid IP prefix format
 
-    // Ziskani IP adresy z rozsahu
+    // Getting IP address from range
     strncpy(ip_str, str, slash - str);
     ip_str[slash - str] = '\0';
-    if (inet_pton(AF_INET, ip_str, &prefix->ip) <= 0) return 0;  // Chyba pri konverzi IP adresy
+    if (inet_pton(AF_INET, ip_str, &prefix->ip) <= 0)
+        return 0;  // Error during IP address conversion
 
-    // Ziskani prefixu
+    // Getting prefix
     prefix->prefix = atoi(slash + 1);
-    if (prefix->prefix <= 0 || prefix->prefix > 32) return 0;  // Neplatna delka prefixu
+    if (prefix->prefix <= 0 || prefix->prefix > 32)
+        return 0;  // Invalid prefix length
 
     prefix->dev_count = 0;
 
