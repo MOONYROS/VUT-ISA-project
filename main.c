@@ -109,7 +109,7 @@ int parse_ip_prefix(const char *str, IP_Prefix *prefix) {
  * @param ip_prefixes Array of IP prefixes.
 */
 void print_ip_ranges(const IP_Prefixes *ip_prefixes) {
-    char ip_str[INET_ADDRSTRLEN];  // Prostor pro uložení řetězcové reprezentace IP adresy
+    char ip_str[INET_ADDRSTRLEN];  // Space for storing a string representation of the IP address
 
     for (int i = 0; i < ip_prefixes->count; i++) {
         if (inet_ntop(AF_INET, &ip_prefixes->prefixes[i].ip, ip_str, INET_ADDRSTRLEN)) {
@@ -144,10 +144,10 @@ int is_ip_in_prefix(const struct in_addr *ip, const IP_Prefix *prefix) {
     uint32_t ip_val = ip_to_uint32(ip);
     uint32_t prefix_val = ip_to_uint32(&prefix->ip);
 
-    // Vytvoření masky podle prefixu
+    // Creating mask from prefix
     uint32_t mask = prefix->prefix == 0 ? 0 : (~0) << (32 - prefix->prefix);
 
-    // Zjistí, jestli IP adresa patří do rozsahu
+    // Checking if IP is in prefix
     return (ip_val & mask) == (prefix_val & mask);
 }
 
@@ -157,12 +157,11 @@ int is_ip_in_prefix(const struct in_addr *ip, const IP_Prefix *prefix) {
  * @param ip_prefixes IP prefixes.
 */
 void update_dev_count(struct occAddr *head, IP_Prefixes *ip_prefixes) {
-    // Nejdříve inicializujeme čítadla na nulu
     for (int i = 0; i < ip_prefixes->count; i++) {
         ip_prefixes->prefixes[i].dev_count = 0;
     }
 
-    // Projdeme všechny IP adresy v seznamu
+    // We go through all the IP addresses in the list
     struct occAddr *current = head;
     while (current) {
         for (int i = 0; i < ip_prefixes->count; i++) {
@@ -176,7 +175,7 @@ void update_dev_count(struct occAddr *head, IP_Prefixes *ip_prefixes) {
     for (int i = 0; i < ip_prefixes->count; i++) {
         int max_devs = (1 << (32 - ip_prefixes->prefixes[i].prefix)) - 2;
         int dev_count = ip_prefixes->prefixes[i].dev_count;
-        char ip_str[INET_ADDRSTRLEN];  // Prostor pro uložení řetězcové reprezentace IP adresy
+        char ip_str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &ip_prefixes->prefixes[i].ip, ip_str, INET_ADDRSTRLEN);
 
         if (dev_count > max_devs / 2) { // FOR TESTING SYSLOG -> 8
@@ -206,7 +205,7 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
         long int lease_time = 24*60*60; // TODO MAGIC CONSTANT
         int wasAck = 0;
 
-        // Extract DHCP message type from DHCP options
+        // Extracting DHCP message type from DHCP options
         u_char* dhcp_options = (u_char*)(packet + 14 + (ip_header->ip_hl << 2) + sizeof(struct udphdr) + 240);
 
         while (*dhcp_options != 255) {  // End option
@@ -338,7 +337,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Uložení všech IP prefixů do dynamického pole
+    // Saving all IP prefixes to a list
     ip_prefixes.count = argc - optind;
     ip_prefixes.prefixes = (IP_Prefix *) malloc(ip_prefixes.count * sizeof(IP_Prefix));
     if (ip_prefixes.prefixes == NULL) {
