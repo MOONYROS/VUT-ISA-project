@@ -1,3 +1,11 @@
+/**
+ * @file listfunc.h
+ * @brief This is a header file for listfunc.c.
+ * @author Ondrej Lukasek (xlukas15)
+ * @date 2023-10
+ * @copyright MIT LICENSE
+*/
+
 #ifndef _LISTFUNC_H
 #define _LISTFUNC_H
 

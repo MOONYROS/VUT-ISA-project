@@ -1,3 +1,11 @@
+/**
+ * @file listfunc.c
+ * @brief This is the file of list functions used in the project.
+ * @author Ondrej Lukasek (xlukas15)
+ * @date 2023-10
+ * @copyright MIT LICENSE
+*/
+
 #include <stdlib.h>
 #include <pcap.h>
 #include <time.h>

@@ -1,3 +1,11 @@
+/**
+ * @file common.h
+ * @brief This is a support file for the project.
+ * @author Ondrej Lukasek (xlukas15)
+ * @date 2023-10
+ * @copyright MIT LICENSE
+*/
+
 #ifndef _COMMON_H
 #define _COMMON_H
 
