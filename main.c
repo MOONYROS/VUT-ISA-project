@@ -21,30 +21,17 @@
 #include "common.h"
 #include "listfunc.h"
 
+#define PROGRESS_DELAY 0
+#define DEFAULT_DELAY 0
+
 #define DHCP_SERVER_PORT 67
 #define DHCP_CLIENT_PORT 68
 
-// DHCP message types
-#define DHCP_DISCOVER 1
-#define DHCP_OFFER 2
-#define DHCP_REQUEST 3
-#define DHCP_DECLINE 4
+// USED DHCP MESSAGE TYPES
 #define DHCP_ACK 5
-#define DHCP_NAK 6
 #define DHCP_RELEASE 7
-#define DHCP_INFORM 8
 
-// DHCP option for lease time
-#define DHCP_OPTION_HOST_NAME 12
-#define DHCP_OPTION_REQUESTED_IP 50
-#define DHCP_OPTION_LEASE_TIME 51
 #define DHCP_OPTION_MESSAGE_TYPE 53
-#define DHCP_OPTION_SERVER_ID 54
-#define DHCP_OPTION_PARAM_LIST 55
-#define DHCP_OPTION_MAX_MSG_SIZE 57
-
-#define BOOTREQUEST 1
-#define BOOTREPLY 2
 
 /**
  * @struct dhcp_packet
@@ -90,7 +77,7 @@ typedef struct {
 struct occAddr *head = NULL;
 
 IP_Prefixes ip_prefixes;
-int delay_micros = 0;
+int delay_micros = DEFAULT_DELAY;
 
 /**
  * @brief Function parses the IP prefix and checks its format.
@@ -212,108 +199,35 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
 
     if (ntohs(udp_header->source) == DHCP_SERVER_PORT || ntohs(udp_header->source) == DHCP_CLIENT_PORT ||
         ntohs(udp_header->dest) == DHCP_SERVER_PORT || ntohs(udp_header->dest) == DHCP_CLIENT_PORT) {
-        // printf("DHCP packet captured\n");
-        // printf("DHCP packet received from %s to %s\n", inet_ntoa(ip_header->ip_src), inet_ntoa(ip_header->ip_dst));
-        print_ip_ranges(&ip_prefixes);  
-        // print_dhcp_packet(dhcp_pkt);
+        print_ip_ranges(&ip_prefixes);
 
-        // time_t expTime;
-        // time_t currTime;
-        // time(&currTime);
-        // expTime = currTime;
         long int lease_time = 24*60*60; // TODO MAGIC CONSTANT
         int wasAck = 0;
 
-        // printf("TIME: %ld CURRTIME: %ld, LEN: %d %d                           \n\n", pkthdr->ts.tv_sec, currTime, pkthdr->caplen, pkthdr->len);
-
         // Extract DHCP message type from DHCP options
         u_char* dhcp_options = (u_char*)(packet + 14 + (ip_header->ip_hl << 2) + sizeof(struct udphdr) + 240);
-        // u_char dhcp_type = 0;
-
-        // print_buffer(dhcp_options, 312);
-        // print_buffer(dhcp_pkt->options, 312);
 
         while (*dhcp_options != 255) {  // End option
-
-            // Print all option codes for debugging
-            // printf("DHCP Option: %d ", *dhcp_options);
             
             switch (*dhcp_options) {
-                case DHCP_OPTION_HOST_NAME:
-                    // printf("Host name: %.*s\n", *(u_char*)(dhcp_options+1), dhcp_options+2);
-                    break;
-                case DHCP_OPTION_REQUESTED_IP :
-                    // printf("Requested IP address: %s\n", inet_ntoa(*(struct in_addr*)(dhcp_options + 2)));
-                    break;
                 case DHCP_OPTION_MESSAGE_TYPE:
                     u_char dhcp_type = *(dhcp_options + 2);  // Message type is two bytes offset from the start of the option
                     if (dhcp_type == DHCP_ACK) {
                         wasAck = 1;
-                        // printf("ACK PRISLO\n");
                     }
-                    if (dhcp_type == DHCP_RELEASE)
-                    {
-                        // printf("Releasing IP: %s\n", inet_ntoa(dhcp_pkt->ciaddr));
+                    if (dhcp_type == DHCP_RELEASE) {
                         removeElement(dhcp_pkt->ciaddr);   
-                        // printf("items in list: %ld\n", countElements()); 
                         update_dev_count(head, &ip_prefixes);
                         print_ip_ranges(&ip_prefixes);    
                     }
                     break;
-                case DHCP_OPTION_LEASE_TIME:
-                    // uint32_t lease_time = ntohl(*(uint32_t*)(dhcp_options + 2));
-                    // expTime += lease_time;
-                    // printf("Lease Time: %u seconds\n", lease_time);
-                    lease_time = ntohl(*(uint32_t*)(dhcp_options + 2));
-                    break;
-                case DHCP_OPTION_SERVER_ID:
-                    // printf("Server identifier IP: %s\n", inet_ntoa(*(struct in_addr*)(dhcp_options + 2)));
-                    break;
-                case DHCP_OPTION_PARAM_LIST:
-                    // printf("Parameter list: \n");
-                    break;
-                case DHCP_OPTION_MAX_MSG_SIZE:
-                    // printf("Max message size request: \n");
-                    break;
                 default:
-                    // printf("Unknown option %d\n", *dhcp_options);
                     break;
             }
 
-            // if (*dhcp_options == DHCP_OPTION_MESSAGE_TYPE) {  // DHCP Message Type option
-            //     u_char dhcp_type = *(dhcp_options + 2);  // Message type is two bytes offset from the start of the option
-            //     switch (dhcp_type) {
-            //         case DHCP_DISCOVER:
-            //             printf("DHCP Type: Discover\n");
-            //             break;
-            //         case DHCP_OFFER:
-            //             printf("DHCP Type: Offer\n");
-            //             break;
-            //         case DHCP_REQUEST:
-            //             printf("DHCP Type: Request\n");
-            //             break;
-            //         case DHCP_DECLINE:
-            //             printf("DHCP Type: Decline\n");
-            //             break;
-            //         case DHCP_ACK:
-            //             printf("DHCP Type: Acknowledgment\n");
-            //             break;
-            //         case DHCP_NAK:
-            //             printf("DHCP Type: Negative Acknowledgment\n");
-            //             break;
-            //         case DHCP_RELEASE:
-            //             printf("DHCP Type: Release\n");
-            //             break;
-            //         case DHCP_INFORM:
-            //             printf("DHCP Type: Inform\n");
-            //             break;
-            //         default:
-            //             printf("Unknown DHCP Type\n");
-            //     }
-            // }
-
             dhcp_options += *(dhcp_options + 1) + 2;  // Move to next option
         }
+
         if(wasAck){
             if (findElement(dhcp_pkt->yiaddr) != NULL) {
                 updateElement(dhcp_pkt->yiaddr, pkthdr->ts.tv_sec + lease_time);
@@ -346,7 +260,7 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
 
         
             // Animation loop for pcap file processing
-            if(delay_micros>0) {
+            if(delay_micros > 0) {
                 clock_t start_time = clock();
                 // looping till required time is not achieved
                 while (clock() < start_time + delay_micros);
@@ -440,8 +354,6 @@ int main(int argc, char* argv[]) {
 
     initscr();
 
-    // printf("Filename: %s\n", filename ? filename : "Není zadán");
-    // printf("Interface: %s\n", interface ? interface : "Není zadán");
     print_ip_ranges(&ip_prefixes);
 
     if (filename)
@@ -454,7 +366,7 @@ int main(int argc, char* argv[]) {
             return 2;
         }
 
-        delay_micros = 00000;
+        delay_micros = PROGRESS_DELAY;
         pcap_loop(handle, 0, packet_handler, NULL);
 
         pcap_close(handle);
@@ -471,7 +383,7 @@ int main(int argc, char* argv[]) {
             return 2;
         }
 
-        delay_micros = 0;
+        delay_micros = DEFAULT_DELAY;
         pcap_loop(handle, 0, packet_handler, NULL);
 
         pcap_close(handle);
@@ -479,19 +391,6 @@ int main(int argc, char* argv[]) {
     }
 
     endwin();
-
-    // char ip_str[INET_ADDRSTRLEN];  // Prostor pro uložení řetězcové reprezentace IP adresy
-    // for (int i = 0; i < ip_prefixes.count; i++) {
-    //     if (inet_ntop(AF_INET, &ip_prefixes.prefixes[i].ip, ip_str, INET_ADDRSTRLEN)) {
-    //         int max_devs = (1 << (32 - ip_prefixes.prefixes[i].prefix)) - 2;
-    //         int dev_count = ip_prefixes.prefixes[i].dev_count;
-    //         printf("IP rozsah: %s/%d %d %d %.2f%%\n", ip_str, ip_prefixes.prefixes[i].prefix, max_devs, dev_count, (double) dev_count*100/max_devs);
-    //     } else {
-    //         fprintf(stderr, "Chyba při konverzi IP adresy pro index %d.\n", i);
-    //         exit(1);
-    //     }
-    // }
-
     free(ip_prefixes.prefixes);
 
     return 0;
