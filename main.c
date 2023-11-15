@@ -17,6 +17,7 @@
 #include <time.h>
 #include <syslog.h>
 #include <ncurses.h>
+#include <arpa/inet.h>
 
 #include "common.h"
 #include "listfunc.h"
@@ -211,7 +212,7 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
         while (*dhcp_options != 255) {  // End option
             
             switch (*dhcp_options) {
-                case DHCP_OPTION_MESSAGE_TYPE:
+                case DHCP_OPTION_MESSAGE_TYPE: {
                     u_char dhcp_type = *(dhcp_options + 2);  // Message type is two bytes offset from the start of the option
                     if (dhcp_type == DHCP_ACK) {
                         wasAck = 1;
@@ -222,6 +223,7 @@ void packet_handler(unsigned char* user_data, const struct pcap_pkthdr* pkthdr, 
                         print_ip_ranges(&ip_prefixes);    
                     }
                     break;
+                }
                 default:
                     break;
             }

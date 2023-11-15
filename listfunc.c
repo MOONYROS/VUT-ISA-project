@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <pcap.h>
 #include <time.h>
+#include <netinet/in.h>
 
 #include "common.h"
 
