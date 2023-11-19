@@ -10,5 +10,8 @@ all: $(TARGET)
 $(TARGET): $(SOURCE)
 	$(CC) $(CFLAGS) $(SOURCE) -o $(TARGET) $(LIBS)
 
+pack
+	tar -cvf xlukas15.tar *
+
 clean:
 	rm -f $(TARGET)
