@@ -1,4 +1,4 @@
-# ISA projekt (2023) - DHCP monitoring
+# ISA project (2023) - DHCP monitoring
 
 The goal of this project was to create a program, that would get the statistics about the current state of network load using IP address prefix.
 
